@@ -1,0 +1,824 @@
+<Window x:Class="CopyBoard.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="CaretClip"
+        Width="440"
+        Height="470"
+        MinWidth="420"
+        MinHeight="450"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
+        Topmost="True"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <Window.Resources>
+        <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#D9F3F4F6" />
+        <SolidColorBrush x:Key="CardBrush" Color="#D9FAFCFF" />
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#99D8DFEA" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#111827" />
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#667085" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#0A5FC2" />
+        <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#EFF4FC" />
+        <SolidColorBrush x:Key="ControlBorderBrush" Color="#C8D7EA" />
+        <SolidColorBrush x:Key="ItemBackgroundBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#FCECEC" />
+        <SolidColorBrush x:Key="DangerBorderBrush" Color="#F3BBBB" />
+        <SolidColorBrush x:Key="ItemHoverBrush" Color="#F2F7FF" />
+        <SolidColorBrush x:Key="ItemSelectedBrush" Color="#E8F1FF" />
+        <SolidColorBrush x:Key="TitleBarBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="ChipBrush" Color="#ECF4FF" />
+        <SolidColorBrush x:Key="ChipBorderBrush" Color="#BED6F5" />
+        <SolidColorBrush x:Key="OverlayBrush" Color="#8C101215" />
+        <SolidColorBrush x:Key="TabHeaderStripBrush" Color="#EDF3FC" />
+        <SolidColorBrush x:Key="TabHeaderActiveBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TabHeaderBorderBrush" Color="#C8D7EA" />
+        <SolidColorBrush x:Key="ScrollThumbBrush" Color="#A0A8B1" />
+        <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#7F8893" />
+
+        <DropShadowEffect x:Key="CardShadow"
+                          BlurRadius="14"
+                          ShadowDepth="1"
+                          Opacity="0.15"
+                          Color="#1A000000" />
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+        </Style>
+
+        <Style x:Key="SlimScrollThumbStyle" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="ThumbBorder"
+                                Background="{DynamicResource ScrollThumbBrush}"
+                                CornerRadius="3"
+                                Width="6"
+                                MinHeight="28" />
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource ScrollThumbHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource ScrollThumbHoverBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SlimScrollBarStyle" TargetType="ScrollBar">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent" Margin="0,6,2,6">
+                            <Track x:Name="PART_Track"
+                                   Minimum="{TemplateBinding Minimum}"
+                                   Maximum="{TemplateBinding Maximum}"
+                                   ViewportSize="{TemplateBinding ViewportSize}"
+                                   Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                   IsDirectionReversed="True"
+                                   Focusable="False">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                  Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Opacity="0"
+                                                  IsTabStop="False" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SlimScrollThumbStyle}" />
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                  Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Opacity="0"
+                                                  IsTabStop="False" />
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RoundedButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.84" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundedButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource DangerBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBorderBrush}" />
+        </Style>
+
+        <Style x:Key="IconActionButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundedButtonStyle}">
+            <Setter Property="Width" Value="38" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Normal" />
+        </Style>
+
+        <Style x:Key="DangerIconActionButtonStyle" TargetType="Button" BasedOn="{StaticResource IconActionButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource DangerBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBorderBrush}" />
+        </Style>
+
+        <Style x:Key="FloatingSettingsButtonStyle" TargetType="Button" BasedOn="{StaticResource RoundedButtonStyle}">
+            <Setter Property="Width" Value="52" />
+            <Setter Property="Height" Value="52" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="FabBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="26"
+                                Effect="{StaticResource CardShadow}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="FabBorder" Property="Opacity" Value="0.9" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="FabBorder" Property="Opacity" Value="0.82" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RoundedTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="CaretBrush" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Background" Value="{DynamicResource ItemBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="TextBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          CanContentScroll="False"
+                                          Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="TextBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="HistoryListItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Background" Value="{DynamicResource ItemBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="ItemBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="10">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ItemHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ItemSelectedBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChipRadioStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="ChipBorder"
+                                Padding="12,7"
+                                CornerRadius="10"
+                                Background="{DynamicResource ControlBackgroundBrush}"
+                                BorderBrush="{DynamicResource ControlBorderBrush}"
+                                BorderThickness="1">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ChipBorder" Property="Opacity" Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ChipBorder" Property="Background" Value="{DynamicResource AccentBrush}" />
+                                <Setter TargetName="ChipBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FluentCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="CheckBoxBorder"
+                                    Width="18"
+                                    Height="18"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource ItemBackgroundBrush}"
+                                    BorderBrush="{DynamicResource CardBorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="5">
+                                <Path x:Name="CheckMark"
+                                      Data="M 2 9 L 7 14 L 16 3"
+                                      Stroke="White"
+                                      StrokeThickness="2"
+                                      StrokeEndLineCap="Round"
+                                      StrokeStartLineCap="Round"
+                                      Visibility="Collapsed" />
+                            </Border>
+                            <ContentPresenter Margin="8,0,0,0"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CheckBoxBorder" Property="Opacity" Value="0.9" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckBoxBorder" Property="Background" Value="{DynamicResource AccentBrush}" />
+                                <Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FluentTabItemStyle" TargetType="TabItem">
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabItemBorder"
+                                Margin="0,0,6,0"
+                                Padding="14,8"
+                                CornerRadius="8"
+                                Background="{DynamicResource TabHeaderStripBrush}"
+                                BorderBrush="{DynamicResource TabHeaderBorderBrush}"
+                                BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              ContentSource="Header" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabItemBorder" Property="Opacity" Value="0.92" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabItemBorder" Property="Background" Value="{DynamicResource TabHeaderActiveBrush}" />
+                                <Setter TargetName="TabItemBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FluentTabControlStyle" TargetType="TabControl">
+            <Setter Property="Background" Value="{DynamicResource ItemBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid KeyboardNavigation.TabNavigation="Local">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0"
+                                    Padding="8,8,8,6"
+                                    CornerRadius="12,12,0,0"
+                                    Background="{DynamicResource TabHeaderStripBrush}"
+                                    BorderBrush="{DynamicResource TabHeaderBorderBrush}"
+                                    BorderThickness="1">
+                                <TabPanel IsItemsHost="True"
+                                          KeyboardNavigation.TabIndex="1"
+                                          Margin="0" />
+                            </Border>
+
+                            <Border Grid.Row="1"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="0,0,12,12"
+                                    Padding="4">
+                                <ContentPresenter x:Name="PART_SelectedContentHost"
+                                                  ContentSource="SelectedContent"
+                                                  KeyboardNavigation.TabNavigation="Local" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="WindowContentRoot" RenderTransformOrigin="0.5,0.5">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform x:Name="RootScaleTransform" />
+                <TranslateTransform x:Name="RootTranslateTransform" />
+            </TransformGroup>
+        </Grid.RenderTransform>
+        <Grid Margin="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Padding="10"
+                    Margin="0,0,0,10"
+                    CornerRadius="14"
+                    Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="1"
+                    Effect="{StaticResource CardShadow}">
+                <DockPanel>
+                    <TextBlock VerticalAlignment="Center"
+                               FontFamily="Segoe Fluent Icons"
+                               FontSize="14"
+                               Foreground="{DynamicResource SecondaryTextBrush}"
+                               Text="&#xE721;" />
+                    <TextBox x:Name="SearchTextBox"
+                             Margin="8,0,0,0"
+                             Style="{StaticResource RoundedTextBoxStyle}"
+                             TextChanged="SearchTextBox_TextChanged"
+                             ToolTip="按内容搜索历史条目"
+                             Height="32"
+                             VerticalContentAlignment="Center" />
+                </DockPanel>
+            </Border>
+
+            <Border Grid.Row="1"
+                    Padding="8"
+                    Margin="0,0,0,10"
+                    CornerRadius="14"
+                    Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="1"
+                    Effect="{StaticResource CardShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <ListBox x:Name="HistoryListBox"
+                             Grid.Row="0"
+                             Margin="0,0,0,8"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Loaded="HistoryListBox_Loaded"
+                             PreviewMouseWheel="HistoryListBox_PreviewMouseWheel"
+                             SelectionChanged="HistoryListBox_SelectionChanged"
+                             MouseDoubleClick="HistoryListBox_MouseDoubleClick"
+                             ScrollViewer.CanContentScroll="False"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"
+                             ItemContainerStyle="{StaticResource HistoryListItemStyle}">
+                        <ListBox.Resources>
+                            <Style TargetType="ScrollBar" BasedOn="{StaticResource SlimScrollBarStyle}" />
+                        </ListBox.Resources>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <DockPanel Grid.Row="0" LastChildFill="False">
+                                        <TextBlock FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Text="{Binding DisplayType}" />
+                                        <Border x:Name="PinnedBadge"
+                                                Visibility="Collapsed"
+                                                Margin="8,0,0,0"
+                                                Padding="8,2"
+                                                CornerRadius="10"
+                                                Background="{DynamicResource ChipBrush}"
+                                                BorderBrush="{DynamicResource ChipBorderBrush}"
+                                                BorderThickness="1">
+                                            <TextBlock FontFamily="Segoe Fluent Icons"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource PrimaryTextBrush}"
+                                                       Text="&#xE718; Pinned" />
+                                        </Border>
+                                        <TextBlock Margin="8,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="12"
+                                                   Text="{Binding CreatedAtLocalText}" />
+                                    </DockPanel>
+
+                                    <TextBlock Grid.Row="1"
+                                               Margin="0,8,0,0"
+                                               Foreground="{DynamicResource PrimaryTextBrush}"
+                                               TextWrapping="Wrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxHeight="44"
+                                               Text="{Binding PreviewText}" />
+                                </Grid>
+
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                        <Setter TargetName="PinnedBadge" Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <WrapPanel Grid.Row="1" VerticalAlignment="Center">
+                        <Button x:Name="CopyButton"
+                                Style="{StaticResource IconActionButtonStyle}"
+                                Click="CopySelected_Click"
+                                Content="&#xE8C8;"
+                                ToolTip="复制到剪贴板"
+                                IsEnabled="False" />
+                        <Button x:Name="EditButton"
+                                Style="{StaticResource IconActionButtonStyle}"
+                                Click="BeginEdit_Click"
+                                Content="&#xE70F;"
+                                ToolTip="编辑文本"
+                                IsEnabled="False" />
+                        <Button x:Name="PinButton"
+                                Style="{StaticResource IconActionButtonStyle}"
+                                Click="TogglePin_Click"
+                                Content="&#xE718;"
+                                ToolTip="置顶条目"
+                                IsEnabled="False" />
+                        <Button x:Name="DeleteButton"
+                                Style="{StaticResource IconActionButtonStyle}"
+                                Click="DeleteSelected_Click"
+                                Content="&#xE74D;"
+                                ToolTip="删除条目"
+                                IsEnabled="False" />
+                        <Button Style="{StaticResource DangerIconActionButtonStyle}"
+                                Click="ClearHistory_Click"
+                                Margin="0"
+                                Content="&#xE894;"
+                                ToolTip="清空历史" />
+                    </WrapPanel>
+                </Grid>
+            </Border>
+
+            <Border x:Name="EditorCard"
+                    Grid.Row="2"
+                    Visibility="Collapsed"
+                    Padding="12"
+                    Margin="0,0,0,10"
+                    CornerRadius="14"
+                    Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="1"
+                    Effect="{StaticResource CardShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               FontWeight="SemiBold"
+                               Text="编辑文本内容" />
+
+                    <Border Grid.Row="1"
+                            Margin="0,8,0,8"
+                            MinHeight="140"
+                            CornerRadius="10"
+                            Background="{DynamicResource ItemBackgroundBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}"
+                            BorderThickness="1">
+                        <TextBox x:Name="EditTextBox"
+                                 Margin="2"
+                                 Padding="8,6"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="{DynamicResource PrimaryTextBrush}"
+                                 CaretBrush="{DynamicResource PrimaryTextBrush}"
+                                 PreviewMouseWheel="EditTextBox_PreviewMouseWheel"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="True"
+                                 HorizontalScrollBarVisibility="Disabled"
+                                 VerticalScrollBarVisibility="Visible" />
+                    </Border>
+
+                    <WrapPanel Grid.Row="2">
+                        <Button Style="{StaticResource RoundedButtonStyle}" Click="SaveEdit_Click" Content="保存修改" />
+                        <Button Style="{StaticResource RoundedButtonStyle}" Click="CancelEdit_Click" Content="取消" Margin="0" />
+                    </WrapPanel>
+                </Grid>
+            </Border>
+
+        </Grid>
+
+        <Button x:Name="FloatingSettingsButton"
+                Style="{StaticResource FloatingSettingsButtonStyle}"
+                Content="&#xE713;"
+                ToolTip="设置"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="0,0,22,22"
+                Click="OpenSettings_Click"
+                Panel.ZIndex="5" />
+
+        <Grid x:Name="SettingsOverlay"
+              Visibility="Collapsed"
+              Background="{DynamicResource OverlayBrush}">
+            <Border Width="460"
+                    MaxHeight="640"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Padding="12"
+                    CornerRadius="16"
+                    Background="{DynamicResource CardBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="1"
+                    Effect="{StaticResource CardShadow}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock FontSize="20" FontWeight="SemiBold" Text="设置与关于" />
+                        <Button DockPanel.Dock="Right"
+                                Style="{StaticResource RoundedButtonStyle}"
+                                Padding="10,6"
+                                Margin="8,0,0,0"
+                                Click="CloseSettings_Click"
+                                Content="关闭" />
+                    </DockPanel>
+
+                    <TabControl Grid.Row="1"
+                                Style="{StaticResource FluentTabControlStyle}"
+                                ItemContainerStyle="{StaticResource FluentTabItemStyle}">
+                        <TabItem Header="设置">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="10">
+                                    <Border CornerRadius="12"
+                                            Padding="12"
+                                            Margin="0,0,0,10"
+                                            Background="{DynamicResource ItemBackgroundBrush}"
+                                            BorderBrush="{DynamicResource CardBorderBrush}"
+                                            BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" FontSize="14" Text="保存时长" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                                       Text="决定历史记录自动清理的周期" />
+                                            <WrapPanel Margin="0,10,0,0">
+                                                <RadioButton x:Name="Retention1DayRadio"
+                                                             Style="{StaticResource ChipRadioStyle}"
+                                                             GroupName="RetentionGroup"
+                                                             Tag="1"
+                                                             Checked="RetentionRadio_Checked"
+                                                             Content="1 天" />
+                                                <RadioButton x:Name="Retention7DayRadio"
+                                                             Style="{StaticResource ChipRadioStyle}"
+                                                             GroupName="RetentionGroup"
+                                                             Tag="7"
+                                                             Checked="RetentionRadio_Checked"
+                                                             Content="7 天" />
+                                                <RadioButton x:Name="Retention30DayRadio"
+                                                             Style="{StaticResource ChipRadioStyle}"
+                                                             GroupName="RetentionGroup"
+                                                             Tag="30"
+                                                             Checked="RetentionRadio_Checked"
+                                                             Content="30 天" />
+                                                <RadioButton x:Name="RetentionForeverRadio"
+                                                             Style="{StaticResource ChipRadioStyle}"
+                                                             GroupName="RetentionGroup"
+                                                             Tag="-1"
+                                                             Checked="RetentionRadio_Checked"
+                                                             Content="永久" />
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border CornerRadius="12"
+                                            Padding="12"
+                                            Margin="0,0,0,10"
+                                            Background="{DynamicResource ItemBackgroundBrush}"
+                                            BorderBrush="{DynamicResource CardBorderBrush}"
+                                            BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" FontSize="14" Text="主题" />
+                                            <TextBlock Margin="0,3,0,0"
+                                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                                       Text="可切换浅色、深色或跟随系统" />
+                                            <WrapPanel Margin="0,10,0,0">
+                                                <RadioButton x:Name="ThemeSystemRadio"
+                                                             Style="{StaticResource ChipRadioStyle}"
+                                                             GroupName="ThemeGroup"
+                                                             Tag="System"
+                                                             Checked="ThemeRadio_Checked"
+                                                             Content="跟随系统" />
+                                                <RadioButton x:Name="ThemeLightRadio"
+                                                             Style="{StaticResource ChipRadioStyle}"
+                                                             GroupName="ThemeGroup"
+                                                             Tag="Light"
+                                                             Checked="ThemeRadio_Checked"
+                                                             Content="浅色" />
+                                                <RadioButton x:Name="ThemeDarkRadio"
+                                                             Style="{StaticResource ChipRadioStyle}"
+                                                             GroupName="ThemeGroup"
+                                                             Tag="Dark"
+                                                             Checked="ThemeRadio_Checked"
+                                                             Content="深色" />
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border CornerRadius="12"
+                                            Padding="12"
+                                            Margin="0,0,0,10"
+                                            Background="{DynamicResource ItemBackgroundBrush}"
+                                            BorderBrush="{DynamicResource CardBorderBrush}"
+                                            BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" FontSize="14" Text="启动行为" />
+                                            <CheckBox x:Name="SettingsStartWithWindowsCheckBox"
+                                                      Style="{StaticResource FluentCheckBoxStyle}"
+                                                      FontWeight="SemiBold"
+                                                      Margin="0,10,0,0"
+                                                      Checked="SettingsStartWithWindowsCheckBox_Changed"
+                                                      Unchecked="SettingsStartWithWindowsCheckBox_Changed"
+                                                      Content="开机启动" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border CornerRadius="12"
+                                            Padding="12"
+                                            Background="{DynamicResource ItemBackgroundBrush}"
+                                            BorderBrush="{DynamicResource CardBorderBrush}"
+                                            BorderThickness="1">
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold" FontSize="14" Text="快捷键" />
+                                            <TextBlock Margin="0,4,0,0"
+                                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                                       Text="Alt + Shift + V" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <TabItem Header="关于">
+                            <StackPanel Margin="14">
+                                <Border CornerRadius="12"
+                                        Padding="12"
+                                        Margin="0,0,0,10"
+                                        Background="{DynamicResource ItemBackgroundBrush}"
+                                        BorderBrush="{DynamicResource CardBorderBrush}"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontFamily="Segoe Fluent Icons"
+                                                       FontSize="16"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       Text="&#xE8C8;" />
+                                            <TextBlock Margin="8,0,0,0" FontSize="22" FontWeight="SemiBold" Text="CaretClip" />
+                                        </StackPanel>
+                                        <TextBlock x:Name="AboutVersionTextBlock"
+                                                   Margin="0,6,0,0"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   Text="版本: -" />
+                                        <TextBlock Margin="0,10,0,0"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   Text="一个 Win11 风格的剪贴板历史工具，支持历史查看、编辑、搜索、置顶、热键唤出。" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border CornerRadius="12"
+                                        Padding="12"
+                                        Background="{DynamicResource ItemBackgroundBrush}"
+                                        BorderBrush="{DynamicResource CardBorderBrush}"
+                                        BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock FontWeight="SemiBold" Text="数据目录" />
+                                        <TextBlock x:Name="AboutDataPathTextBlock"
+                                                   Margin="0,4,0,0"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   Text="-" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

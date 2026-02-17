@@ -1,0 +1,16 @@
+# .NET build outputs
+**/bin/
+**/obj/
+
+# IDE and local user files
+.vs/
+*.user
+*.suo
+
+# Local tool caches in this workspace
+.dotnet/
+.templatehive/
+
+# Release artifacts
+artifacts/
+*.zip
