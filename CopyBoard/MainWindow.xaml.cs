@@ -172,7 +172,13 @@ public partial class MainWindow : Window
             case NativeMethods.WM_CLIPBOARDUPDATE:
                 if (!_ignoreClipboardUpdate)
                 {
-                    TryCaptureClipboard();
+                    Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+                    {
+                        if (!_ignoreClipboardUpdate)
+                        {
+                            TryCaptureClipboard();
+                        }
+                    }));
                 }
 
                 handled = true;
@@ -305,7 +311,22 @@ public partial class MainWindow : Window
 
     private void TryCaptureClipboard()
     {
-        var entry = ReadClipboardEntry();
+        ClipboardEntry? entry;
+        try
+        {
+            entry = ReadClipboardEntry();
+        }
+        catch (Exception ex) when (IsClipboardInteropException(ex))
+        {
+            UpdateStatus("剪贴板正被占用，已跳过本次记录。");
+            return;
+        }
+        catch
+        {
+            UpdateStatus("检测到异常剪贴板内容，已跳过。");
+            return;
+        }
+
         if (entry is null)
         {
             return;
@@ -361,7 +382,7 @@ public partial class MainWindow : Window
                 if (Clipboard.ContainsFileDropList())
                 {
                     StringCollection? files = Clipboard.GetFileDropList();
-                    if (files.Count > 0)
+                    if (files is { Count: > 0 })
                     {
                         return new ClipboardEntry
                         {
@@ -374,14 +395,21 @@ public partial class MainWindow : Window
 
                 return null;
             }
-            catch (COMException)
+            catch (Exception ex) when (IsClipboardInteropException(ex))
             {
                 Dispatcher.Invoke(() => { }, DispatcherPriority.Background);
+            }
+            catch
+            {
+                return null;
             }
         }
 
         return null;
     }
+
+    private static bool IsClipboardInteropException(Exception ex) =>
+        ex is COMException || ex is ExternalException;
 
     private void PositionWindowForQuickShow()
     {
@@ -917,6 +945,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        var copied = false;
         _ignoreClipboardUpdate = true;
         try
         {
@@ -949,14 +978,28 @@ public partial class MainWindow : Window
 
                     break;
             }
-
-            UpdateStatus("已写回系统剪贴板。");
-            HideWithAnimation();
+            copied = true;
+        }
+        catch (Exception ex) when (IsClipboardInteropException(ex))
+        {
+            UpdateStatus("写入系统剪贴板失败，请稍后重试。");
+        }
+        catch
+        {
+            UpdateStatus("写入剪贴板时发生异常，已取消本次操作。");
         }
         finally
         {
             _ignoreClipboardUpdate = false;
         }
+
+        if (!copied)
+        {
+            return;
+        }
+
+        UpdateStatus("已写回系统剪贴板。");
+        HideWithAnimation();
     }
 
     private void BeginEdit_Click(object sender, RoutedEventArgs e)
